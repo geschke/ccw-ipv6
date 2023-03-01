@@ -80,7 +80,6 @@ function cleanIp($ip) {
   return "";
 }
 
-
 function saveCurrentIp($filename,$ip) {
   $res = file_put_contents($filename, $ip);
   if ($res === false) {
@@ -113,11 +112,8 @@ function isLocked($lockFile, $seconds = 600) {
   if (file_exists($lockFile)) {
     // older than 10 minutes?
     $mTime = filemtime($lockFile);
-    echo "$filename wurde zuletzt modifiziert: " . date ("F d Y H:i:s.", $mTime) . " ---- $mTime\n";
     $curTime = time();
-    echo "current time: " .  date ("F d Y H:i:s.", $curTime) . " ..... $curTime\n";
     if (($curTime - $mTime) > $seconds) {
-      echo "lock timeout, clear file\n";
       syslog(LOG_WARNING, SYSLOG_PREFIX . ERR_LOCK_TIMEOUT);
       unlink($lockFile);
       return false;
@@ -145,12 +141,10 @@ function cleanupAndExit($errorCode, $logLevel, $logText) {
 function main($wanInterface, $currentIpFile) {
   global $currentIpFileLock;
   if (isLocked($currentIpFileLock)) {
-    echo "is locked!\n";
     syslog(LOG_WARNING, SYSLOG_PREFIX . ERR_PROCESS_RUNNING);
     exit(10);
   }
 
-  echo "not locked, set lock\n";
   setLock($currentIpFileLock);
  
   $ips = getIp($wanInterface);
@@ -167,40 +161,29 @@ function main($wanInterface, $currentIpFile) {
   if ($currentIp == "") {
     cleanupAndExit(3, LOG_WARNING, SYSLOG_PREFIX . ERR_COULD_NOT_RECOGNIZE_CURRENT_IP);
   }
-
-  echo "current IP: " . $currentIp . "\n";
-
+  
   $fileIp = readIpFromFile($currentIpFile);
   if ($fileIp === false) {
-    echo "no previous IP file or error\n";
     applyInterfaceLAN();
     $ok = saveCurrentIp($currentIpFile, $currentIp);
     if (!$ok) {
       cleanupAndExit(4, LOG_WARNING, SYSLOG_PREFIX . ERR_COULD_NOT_WRITE_IP_FILE);
-
     }
-    cleanupAndExit(0, LOG_WARNING, SYSLOG_PREFIX . INFO_NEW_IP_APPLIED . $currentIp); // todo: switch to LOG_INFO
+    cleanupAndExit(0, LOG_INFO, SYSLOG_PREFIX . INFO_NEW_IP_APPLIED . $currentIp);
   } else {
-    echo "current IP from file: " . $fileIp . "\n";
-    //$currentIp .= "lalala";
     if ($currentIp == $fileIp) {
-      echo "current IP is identical to file IP, so still valid, do nothing\n";
-      cleanupAndExit(0, LOG_WARNING, SYSLOG_PREFIX . INFO_STILL_VALID . $currentIp); // todo: switch to LOG_INFO
-
+      cleanupAndExit(0, LOG_INFO, SYSLOG_PREFIX . INFO_STILL_VALID . $currentIp);
     } else {
-      echo "current IP differs from file IP, do something and save new ip into file!\n";
+      // current IP differs from file IP, do something and save new ip into file
       applyInterfaceLAN();      
       $ok = saveCurrentIp($currentIpFile, $currentIp);
       if (!$ok) {
         cleanupAndExit(5, LOG_WARNING, SYSLOG_PREFIX . ERR_COULD_NOT_WRITE_IP_FILE);
-
       }
-      cleanupAndExit(0, LOG_WARNING, SYSLOG_PREFIX . INFO_NEW_IP_APPLIED . $currentIp); // todo: switch to LOG_INFO
+      cleanupAndExit(0, LOG_INFO, SYSLOG_PREFIX . INFO_NEW_IP_APPLIED . $currentIp); 
     }
 
   }
 }
 
-// todo: check pfSense config locks (interface.apply and /var/run/ something)
-// todo: implement restart logic, implement file locking stuff
 main($wanInterface, $currentIpFile);
