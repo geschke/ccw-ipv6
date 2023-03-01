@@ -9,6 +9,8 @@ When using pfSense with IPv6 and dynamic address allocation, the LAN interface d
 
 tbd
 
+Basic steps:
+
 * put the scripts into an appropriate folder
 * modify ccw_ipv6.php: adjust identifier of WAN interface to your needs, e.g. "igb0", "em0" or similar
 * add as cronjob: "cd /<SCRIPT FOLDER>/ && php ccw_ipv6.php" and let it run once per minute
