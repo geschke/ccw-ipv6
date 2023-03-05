@@ -69,32 +69,24 @@ $ifcfgo['ifcfg'] = $ifConfig;
 // configuration can be distributed with DHCPv6 / RA.
 
 $realif = get_real_interface($ifapply);
-//echo "realif: " . $realif . "\n";
+
 $ifmtu = get_interface_mtu($realif);
-//echo "ifmtu: " . $ifmtu . "\n";
+
 if (config_path_enabled("interfaces/{$ifapply}")) {
-  //echo "config path enabled!\n";
-  //echo "ifcfgo: ";
-  //print_r($ifcfgo);
 	interface_bring_down($ifapply, false, $ifcfgo);
 	interface_configure($ifapply, true);
 	if (config_get_path("interfaces/{$ifapply}/ipaddrv6") == "track6") {
-    //echo "in config get path track6\n";
 		/* call interface_track6_configure with linkup true so
 		   IPv6 IPs are added back. dhcp6c needs a HUP. Can't
 		   just call interface_configure with linkup true as
 		   that skips bridge membership addition.
 		*/
 		$wancfg = config_get_path("interfaces/{$ifapply}");
-    //echo "wancfg:\n";
-    //print_r($wancfg);
 		interface_track6_configure($ifapply, $wancfg, true);
 	}
 } else {
-  //echo "in else mit interface bring down\n";
 	interface_bring_down($ifapply, true, $ifcfgo);
 }
-//echo "after all, now restart interface services\n";
 restart_interface_services($ifapply, $ifcfg['ipaddrv6']);
 			
 /* sync filter configuration */
