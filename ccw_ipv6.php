@@ -58,13 +58,13 @@ function findCurrentIp(array $ips) {
   $currentIp = "";
   foreach ($ips as $ip) {
     $ip = trim($ip);
-    print($ip . "\n  ");
+    //print($ip . "\n  ");
   
     if (!preg_match("/^f[cdef][0-9a-f][0-9a-f].*$/", $ip) 
       && !preg_match("/^fe80.*$/", $ip) 
       && !preg_match("/^.*\sdeprecated\s.*$/", $ip) 
       ) {
-      print "found!\n";
+      //print "found!\n";
       $currentIp = $ip;
       break;
     } 
