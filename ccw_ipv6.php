@@ -96,7 +96,7 @@ function readIpFromFile($filename) {
   if ($ip === false) {
     return false;
   }
-  print_r($ip);
+  //print_r($ip);
   return $ip;
 }
 
